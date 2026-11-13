@@ -1,0 +1,7 @@
+from reachy_mini import ReachyMini
+with ReachyMini() as mini:
+    print("Connected to ReachyMini!")
+    mini.goto_target(antennas=[0.5, -0.5],duration=0.5,)
+    mini.goto_target(antennas=[-0.5, 0.5],duration=0.5,)
+    mini.goto_target(antennas=[0.0, 0.0],duration=0.5,)
+    print("Done!")
