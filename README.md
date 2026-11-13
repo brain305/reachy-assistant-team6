@@ -16,11 +16,10 @@ Reachy Mini 시뮬레이터(MuJoCo) 위에서 동작하는 음성 대화형 개�
 | Reachy Mini SDK | `reachy-mini[mujoco]` 1.14.0 (`requirements.txt`) |
 | OS | Windows + WSL2 (Ubuntu) 또는 macOS (Apple Silicon) |
 
-> 교수님 강의자료는 Windows(PowerShell) 기준입니다. 아래는 **WSL**과 **macOS** 기준 설치 방법입니다.
 
 ---
 
-## 설치: WSL (Ubuntu) ✅ 검증됨
+## 설치: WSL (Ubuntu)
 
 Ubuntu 26.04 / WSLg 환경에서 확인했습니다.
 
@@ -59,7 +58,6 @@ uv pip install -r requirements.txt
 python -c "from reachy_mini import ReachyMini; print('Reachy Mini SDK OK')"
 ```
 
-> ⚠️ 저장소는 **리눅스 쪽 폴더(`~/...`)**에 두세요. `/mnt/c`, `/mnt/d` 같은 윈도우 드라이브에 두면 매우 느려집니다.
 
 ### 4. GPU 렌더링 설정 (시뮬레이터 렉 방지)
 
@@ -87,9 +85,7 @@ glxinfo -B | grep renderer    # "D3D12 (...)"이면 GPU, "llvmpipe"면 CPU
 
 ---
 
-## 설치: macOS (Apple Silicon) ⚠️ 아직 검증 전
-
-M1 이상 맥 기준 예상 절차입니다. 처음 설치하는 팀원은 결과를 이 문서에 반영해 주세요.
+## 설치: macOS (Apple Silicon)
 
 ### 1. 기본 도구
 
@@ -105,7 +101,6 @@ git lfs install
 | `build-essential` | Xcode Command Line Tools |
 | `libcairo2-dev`, `libgirepository1.0-dev` | `brew install cairo gobject-introspection` |
 | `gstreamer1.0-*` | `brew install gstreamer` |
-| GPU 렌더링 설정 (4단계) | **필요 없음** |
 
 ### 2. 저장소 클론 + 가상환경 (WSL과 동일)
 
