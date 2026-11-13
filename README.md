@@ -118,15 +118,20 @@ python -c "from reachy_mini import ReachyMini; print('Reachy Mini SDK OK')"
 macOS는 GUI 창을 메인 스레드에서만 띄울 수 있어서, MuJoCo 창이 뜨지 않으면 `mjpython`으로 실행해야 할 수 있습니다.
 
 ```bash
-reachy-mini-daemon --sim                              # 먼저 시도
+reachy-mini-daemon --sim                              # 실행 안됨
 mjpython -m reachy_mini.daemon.app.main --sim         # 창이 안 뜨면 시도
 ```
 
-정확한 명령은 SDK 버전에 따라 다를 수 있으니 [공식 저장소](https://github.com/pollen-robotics/reachy_mini) README의 macOS 안내를 확인하세요.
+위 코드 실행 전 마이크 권한이 없으면 실행 되지 않음
+권한 허용 후 
+```bash
+mjpython -m reachy_mini.daemon.app.main --sim
+```
+코드 실행 바람
 
 ### 4. 권한
 
-마이크·카메라를 쓸 때 **시스템 설정 → 개인정보 보호 및 보안 → 마이크 / 카메라**에서 터미널(또는 VS Code)을 허용해야 합니다.
+마이크·카메라를 쓸 때 **시스템 설정 → 개인정보 보호 및 보안 → 마이크 / 카메라**에서 터미널(또는 VS Code)을 허용 필요
 
 ---
 
