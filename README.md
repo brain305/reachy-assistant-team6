@@ -51,8 +51,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ```bash
 cd ~
-git clone <저장소 URL> reachi
-cd reachi
+git clone <저장소 URL> reachy
+cd reachy
 uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -r requirements.txt
@@ -110,8 +110,8 @@ git lfs install
 ### 2. 저장소 클론 + 가상환경 (WSL과 동일)
 
 ```bash
-git clone <저장소 URL> reachi
-cd reachi
+git clone <저장소 URL> reachy
+cd reachy
 uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -r requirements.txt
@@ -142,7 +142,7 @@ mjpython -m reachy_mini.daemon.app.main --sim         # 창이 안 뜨면 시도
 **터미널 1: 시뮬레이터 (계속 켜 둠)**
 
 ```bash
-cd ~/reachi
+cd ~/reachy
 source .venv/bin/activate
 reachy-mini-daemon --sim
 ```
@@ -152,7 +152,7 @@ MuJoCo 창에 로봇이 보이면 성공입니다.
 **터미널 2: 안테나 테스트**
 
 ```bash
-cd ~/reachi
+cd ~/reachy
 source .venv/bin/activate
 python test_antenna.py
 ```
@@ -178,7 +178,7 @@ python test_antenna.py
 ## 폴더 구조
 
 ```
-reachi/
+reachy/
 ├── README.md
 ├── requirements.txt     # Python 패키지 목록
 ├── test.py              # Python 실행 확인용
