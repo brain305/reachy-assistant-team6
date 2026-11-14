@@ -9,12 +9,12 @@ Reachy Mini 시뮬레이터(MuJoCo) 위에서 동작하는 음성 대화형 개�
 
 ## 요구 사항
 
-| 항목 | 버전 |
-|---|---|
-| Python | 3.12 |
-| 패키지 관리 | [uv](https://docs.astral.sh/uv/) |
-| Reachy Mini SDK | `reachy-mini[mujoco]` 1.14.0 (`requirements.txt`) |
-| OS | Windows + WSL2 (Ubuntu) 또는 macOS (Apple Silicon) |
+| 항목            | 버전                                               |
+| --------------- | -------------------------------------------------- |
+| Python          | 3.12                                               |
+| 패키지 관리     | [uv](https://docs.astral.sh/uv/)                   |
+| Reachy Mini SDK | `reachy-mini[mujoco]` 1.14.0 (`requirements.txt`)  |
+| OS              | Windows + WSL2 (Ubuntu) 또는 macOS (Apple Silicon) |
 
 > 교수님 강의자료는 Windows(PowerShell) 기준입니다. 아래는 **WSL**과 **macOS** 기준 설치 방법입니다.
 
@@ -36,10 +36,10 @@ sudo apt install -y \
 git lfs install
 ```
 
-| 패키지 | 필요한 이유 |
-|---|---|
+| 패키지                                                                     | 필요한 이유                                              |
+| -------------------------------------------------------------------------- | -------------------------------------------------------- |
 | `build-essential`, `pkg-config`, `libcairo2-dev`, `libgirepository1.0-dev` | SDK가 쓰는 `pygobject`를 리눅스에서 직접 컴파일하기 위해 |
-| `gir1.2-gst*`, `gstreamer1.0-*` | 데몬이 카메라·오디오 처리에 쓰는 GStreamer |
+| `gir1.2-gst*`, `gstreamer1.0-*`                                            | 데몬이 카메라·오디오 처리에 쓰는 GStreamer               |
 
 ### 2. uv 설치 (없는 경우)
 
@@ -100,12 +100,12 @@ brew install uv git-lfs pkg-config cairo gobject-introspection gstreamer
 git lfs install
 ```
 
-| WSL | macOS |
-|---|---|
-| `build-essential` | Xcode Command Line Tools |
+| WSL                                       | macOS                                      |
+| ----------------------------------------- | ------------------------------------------ |
+| `build-essential`                         | Xcode Command Line Tools                   |
 | `libcairo2-dev`, `libgirepository1.0-dev` | `brew install cairo gobject-introspection` |
-| `gstreamer1.0-*` | `brew install gstreamer` |
-| GPU 렌더링 설정 (4단계) | **필요 없음** |
+| `gstreamer1.0-*`                          | `brew install gstreamer`                   |
+| GPU 렌더링 설정 (4단계)                   | **필요 없음**                              |
 
 ### 2. 저장소 클론 + 가상환경 (WSL과 동일)
 
@@ -165,15 +165,15 @@ python test_antenna.py
 
 ## 문제 해결
 
-| 증상 | 원인 | 해결 |
-|---|---|---|
-| `uv pip install` 중 `pycairo` / `pygobject` 빌드 실패, `Unknown compiler(s)` | 컴파일러·개발 라이브러리 없음 | WSL 1단계 패키지 설치 (맥: `xcode-select --install` + brew 패키지) |
-| `ValueError: Namespace Gst not available` | GStreamer 없음 | WSL 1단계의 `gir1.2-gst*`, `gstreamer1.0-*` 설치 (맥: `brew install gstreamer`) |
-| 시뮬레이터가 심하게 느리고 CPU 사용률이 매우 높음 (WSL) | CPU 소프트웨어 렌더링 | WSL 4단계 GPU 렌더링 설정, Windows NVIDIA 드라이버 최신화 |
-| MuJoCo 창이 안 뜸 (WSL) | OpenGL/GLFW 라이브러리 | `sudo apt install -y libglfw3 mesa-utils` |
-| VS Code에서 인터프리터를 못 찾음 (WSL) | VS Code가 WSL에 연결되지 않음 | WSL 5단계 참고, 경로 직접 입력 |
-| `apt` 실행 시 `Could not get lock` | Ubuntu 자동 업데이트 진행 중 | 끝날 때까지 기다리기 (잠금 파일 삭제 금지) |
-| `test_antenna.py` 연결 실패 | 데몬이 꺼져 있거나 아직 시작 중 | 터미널 1의 데몬 확인 후 다시 실행 |
+| 증상                                                                         | 원인                            | 해결                                                                            |
+| ---------------------------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------- |
+| `uv pip install` 중 `pycairo` / `pygobject` 빌드 실패, `Unknown compiler(s)` | 컴파일러·개발 라이브러리 없음   | WSL 1단계 패키지 설치 (맥: `xcode-select --install` + brew 패키지)              |
+| `ValueError: Namespace Gst not available`                                    | GStreamer 없음                  | WSL 1단계의 `gir1.2-gst*`, `gstreamer1.0-*` 설치 (맥: `brew install gstreamer`) |
+| 시뮬레이터가 심하게 느리고 CPU 사용률이 매우 높음 (WSL)                      | CPU 소프트웨어 렌더링           | WSL 4단계 GPU 렌더링 설정, Windows NVIDIA 드라이버 최신화                       |
+| MuJoCo 창이 안 뜸 (WSL)                                                      | OpenGL/GLFW 라이브러리          | `sudo apt install -y libglfw3 mesa-utils`                                       |
+| VS Code에서 인터프리터를 못 찾음 (WSL)                                       | VS Code가 WSL에 연결되지 않음   | WSL 5단계 참고, 경로 직접 입력                                                  |
+| `apt` 실행 시 `Could not get lock`                                           | Ubuntu 자동 업데이트 진행 중    | 끝날 때까지 기다리기 (잠금 파일 삭제 금지)                                      |
+| `test_antenna.py` 연결 실패                                                  | 데몬이 꺼져 있거나 아직 시작 중 | 터미널 1의 데몬 확인 후 다시 실행                                               |
 
 ## 폴더 구조
 
@@ -184,3 +184,25 @@ reachy/
 ├── test.py              # Python 실행 확인용
 └── test_antenna.py      # Reachy Mini 안테나 동작 테스트
 ```
+
+## 기능 구현
+
+### 감정 별 행동 표현
+
+감정별 모션 계획 (직접 만드는 경우)
+
+┌────────────┬──────────────────────────────┬───────────────────────────────┬──────────────────┐
+│ emotion │ 안테나 │ 머리 │ 몸통 │
+├────────────┼──────────────────────────────┼───────────────────────────────┼──────────────────┤
+│ happy │ 빠르게 번갈아 여러 번 흔들기 │ 살짝 위로 들기 │ 좌우로 살짝 들썩 │
+├────────────┼──────────────────────────────┼───────────────────────────────┼──────────────────┤
+│ sad │ 아래로 축 늘어뜨리기 │ 고개 숙이기 (pitch ↓), 천천히 │ 정지 │
+├────────────┼──────────────────────────────┼───────────────────────────────┼──────────────────┤
+│ curious │ 한쪽만 세우기 │ 고개 갸우뚱 (roll 15~20°) │ 정지 │
+├────────────┼──────────────────────────────┼───────────────────────────────┼──────────────────┤
+│ surprised │ 둘 다 확 세우기 │ 뒤로 살짝 젖히기, 빠르게 │ 정지 │
+├────────────┼──────────────────────────────┼───────────────────────────────┼──────────────────┤
+│ comforting │ 천천히 부드럽게 한 번 흔들기 │ 천천히 끄덕이기 │ 정지 │
+├────────────┼──────────────────────────────┼───────────────────────────────┼──────────────────┤
+│ neutral │ 기본 위치 │ 기본 위치 │ 정지 │
+└────────────┴──────────────────────────────┴───────────────────────────────┴──────────────────┘
