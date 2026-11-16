@@ -88,6 +88,8 @@ class ReachyChat:
                 system_instruction=system.format(today=_today()),
                 response_mime_type="application/json",
                 response_schema=ReachyReply,
+                thinking_config=types.ThinkingConfig(
+                    thinking_level="low"      # 추론 수준 Low로 설정(더 빠른 응답을 위해)
             ),
         )
 
