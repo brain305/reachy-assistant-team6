@@ -329,3 +329,123 @@ reachy/
 ├── test.py              # Python 실행 확인용
 └── test_antenna.py      # Reachy Mini 안테나 동작 테스트
 ```
+
+
+---
+
+## 2026-11-16: Skill 라우팅 / WSL 카메라 지원 (feature/vision-news 개선)
+
+### 달라진 실행 구조
+
+`voice_chat.py`는 STT 결과의 특정 단어를 조건문으로 비교하지 않습니다.
+Gemini `skills/router.py`가 의도를 구조화된 JSON(`chat`, `vision`, `news`, `slack`)으로 판단하고
+`skills/runner.py`가 등록된 스킬을 실행합니다. 선택이 `chat`이면 기존 `ReachyChat`으로 보내
+일반 음성 대화 및 감정 표현 기능을 유지합니다.
+
+```text
+STT → Gemini SkillRouter → chat  → ReachyChat → TTS + motion
+                        → vision → webcam/image → Gemini vision → TTS + motion
+                        → news   → RSS → Gemini summary → TTS + motion
+                        → slack  → 최근 요약 → Slack Webhook → TTS + motion
+```
+
+- `카메라 관련 정보를 알려줘`는 카메라 촬영이 아닌 일반 대화로 분류하도록 지시되어 있습니다.
+- `내가 들고 있는 물건이 뭐야?`는 실제 촬영을 요청하므로 vision에 해당합니다.
+- `뉴스를 슬랙에 보내줘`는 기존 요약이 있을 때만 전송합니다.
+- Skill 선택에는 Gemini API 호출이 추가되므로 응답 시간이 다소 늘어날 수 있습니다.
+- 스킬을 늘리려면 `skills/runner.py`에 함수를 등록하고 `skills/router.py`의 스키마·설명을 수정합니다.
+- Slack 전송은 음성으로 명시적으로 요청한 경우에만 실행하도록 SkillRouter에 지시해 두었습니다.
+
+### 기본 실행 (Windows / WSL)
+
+가상환경과 필수 라이브러리를 설치하고 `.env.example`을 `.env`로 복사한 뒤
+`GEMINI_API_KEY`에 유효한 키를 넣습니다. 뉴스 Slack 전송에는 `SLACK_WEBHOOK_URL`도 필요합니다.
+
+```bash
+# Linux / WSL
+uv venv .venv --python 3.12
+source .venv/bin/activate
+uv pip install -r requirements.txt
+python -m unittest test_skill_routing -v
+
+# 터미널 1
+reachy-mini-daemon --sim
+
+# 터미널 2 (별도 터미널에서 가상환경 재활성화)
+python voice_chat.py
+```
+
+기존 README의 WSL 시스템 라이브러리·마이크·스피커 설정도 선행되어야 합니다.
+
+### 카메라: Windows 네이티브
+
+기본값 `REACHY_CAMERA_SOURCE=auto`로 실행하면 Windows에서는 DirectShow 웹캠을 사용합니다.
+Windows가 아닌 Linux에서는 V4L2 웹캠 장치를 시도합니다.
+
+### 카메라: WSL에서 이미지 파일 사용 (가장 간단한 테스트)
+
+WSL에 카메라 장치가 없더라도 미리 촬영한 이미지를 이용해 이미지 인식 기능을 테스트할 수 있습니다.
+WSL의 `.env`에 다음을 설정하세요.
+
+```dotenv
+REACHY_CAMERA_SOURCE=file
+REACHY_CAMERA_IMAGE=/home/사용자이름/test_images/phone.jpg
+```
+
+Windows에 저장한 사진도 `/mnt/c/Users/사용자이름/Pictures/phone.jpg`처럼 접근할 수 있습니다.
+이 모드에서는 매번 동일한 이미지를 사용하므로 실시간 웹캠 촬영은 하지 않습니다.
+
+### 카메라: Windows 웹캠을 WSL에서 사용하기 (브리지)
+
+WSL2의 일반적인 환경에서는 Windows 카메라가 리눅스 `/dev/video0`에 자동으로 나타나지 않습니다.
+실시간 촬영을 위해 Windows 측에서 `windows_camera_bridge.py`를 실행하고, WSL 측에서
+HTTP 이미지 요청을 보내는 방식을 추가했습니다.
+
+1. Windows PowerShell에서 Python 3.12 및 `opencv-python`, `python-dotenv`를 준비합니다.
+2. Windows 프로젝트의 `.env`에 아래를 설정합니다. 토큰은 충분히 긴 무작위 값으로 직접 만드세요.
+
+   ```dotenv
+   REACHY_CAMERA_BRIDGE_TOKEN=여기에_강력한_임의의_비밀문자열
+   REACHY_CAMERA_BRIDGE_BIND=127.0.0.1
+   REACHY_CAMERA_BRIDGE_PORT=8765
+   ```
+
+3. **Windows PowerShell**에서 실행:
+
+   ```powershell
+   python windows_camera_bridge.py
+   ```
+
+4. WSL의 `.env`에 다음을 설정합니다. Windows와 토큰 값이 같아야 합니다.
+
+   ```dotenv
+   REACHY_CAMERA_SOURCE=bridge
+   REACHY_CAMERA_BRIDGE_URL=http://127.0.0.1:8765
+   REACHY_CAMERA_BRIDGE_TOKEN=Windows와_동일한_비밀문자열
+   ```
+
+5. WSL에서 `python test_vision.py`로 확인한 뒤 `python voice_chat.py`를 실행합니다.
+
+WSL 네트워크 주의:*위 localhost 주소는 mirrored networking을 사용하거나 Windows↔WSL localhost
+연결이 가능한 구성에서 동작합니다. 기본 NAT 모드에서 WSL→Windows localhost 접근이 안 되면
+Windows 호스트의 WSL에서 도달 가능한 IP를 `REACHY_CAMERA_BRIDGE_URL`에 적고,
+Windows의 `REACHY_CAMERA_BRIDGE_BIND=0.0.0.0`으로 바꿔야 할 수 있습니다. 이 경우
+Windows 방화벽에서 신뢰할 수 있는 로컬 네트워크에서만 포트 8765에 접근할 수 있도록 제한하세요.
+토큰 헤더는 권한 확인용이지만 일반 HTTP 트래픽은 암호화되지 않으므로 공용망·인터넷에는 절대
+노출하지 마세요. 네트워크 제약이나 방화벽 정책에 따라 브리지 접속이 불가능할 수 있습니다.
+
+**중요:** 위 구성은 WSL에서도 이용할 수 있도록 코드를 준비한 것이며, 실제 팀원 WSL 장비의
+웹캠/오디오/네트워크 연동을 검증한 것은 아닙니다. 실기기 테스트가 필요합니다.
+
+### 테스트
+
+```bash
+python -m unittest test_skill_routing -v      # 오프라인 Skill 실행기 테스트
+python test_skill_router.py                 # Gemini 의도 판단 테스트(실제 API 키 필요)
+python test_vision.py                       # WSL에서는 file 또는 bridge 설정
+python test_news.py
+python test_slack.py                         # 실제 Slack에 메시지 전송됨
+```
+
+`test_slack.py`를 실행하면 실제로 Webhook의 지정 채널에 테스트 메시지가 전송됩니다.
+`.env`는 `.gitignore`로 추적 제외하며, ZIP이나 PR에 비밀 키를 넣지 마세요.
