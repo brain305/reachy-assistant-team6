@@ -8,7 +8,7 @@ from contextlib import nullcontext
 
 from reachy_mini import ReachyMini
 
-from llm import ReachyChat
+from diary.conversation import DiaryConversation, spoken_text
 from motion import EmotionMotion
 from stt import SpeechToText
 from tts import TextToSpeech
@@ -26,7 +26,7 @@ def connect_reachy():
 print("STT 모델 불러오는 중...")
 stt = SpeechToText()
 tts = TextToSpeech()
-chat = ReachyChat()  # 대화 기록 유지 (프로그램을 껐다 켜면 초기화)
+chat = DiaryConversation()  # 대화 기록 유지 (프로그램을 껐다 켜면 초기화)
 mini = connect_reachy()
 
 
@@ -82,15 +82,17 @@ with mini if mini else nullcontext():
                 continue
             t2 = time.time()
 
-            print(f"  감정={reply.emotion.value} 세기={reply.intensity:.1f}")
+            print(f"  감정={getattr(reply.emotion, 'value', reply.emotion)} 세기={reply.intensity:.1f}")
             print(f"  (STT {t1 - t0:.1f}s + LLM {t2 - t1:.1f}s = 대답까지 {t2 - t0:.1f}s)")
             say(
-                reply.answer,
+                spoken_text(reply),
                 # 모션은 백그라운드로 시작 → 말과 동시에 움직임
                 on_start=lambda: motion and motion.express(reply.emotion, reply.intensity),
             )
             if motion:
                 motion.wait()  # 모션이 말보다 길면 끝날 때까지 기다린 뒤 다시 듣기
-    except KeyboardInterrupt:
-        tts.stop()
+    except (KeyboardInterrupt, EOFError):
         print("\n종료")
+    finally:
+        tts.stop()
+        chat.close()
