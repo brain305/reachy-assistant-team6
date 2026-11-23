@@ -6,22 +6,10 @@ PR 리뷰도 이 기준으로 진행합니다.
 ## 1. Gemini 호출은 `llm/`을 통해서만
 
 - `genai.Client`를 직접 만들지 않습니다.
-- `llm`에서 `_`로 시작하는 함수(`_get_client`, `_contents` 등)를 import하지 않습니다.
+- `llm`에서 `_`로 시작하는 함수(`_get_client`, `_today` 등)를 import하지 않습니다.
 - `llm/`의 코드를 복사해서 고쳐 쓰지 않습니다.
-- 쓸 수 있는 것 (`from llm import ...`):
-
-| 이름 | 용도 |
-|---|---|
-| `generate_text(prompt, system=None, model=None, images=None)` | 일반 텍스트 생성 (요약 등) |
-| `generate_json(prompt, schema, system=None, model=None, images=None)` | 정해진 형식(pydantic 모델)의 JSON 응답. 의도 분류, 일기 생성 등 |
-| `search_web(query)` | 구글 검색 결과 요약 |
-| `ReachyChat` | 음성 대화 세션. `send()`로 대답을 받고, `remember(text)`로 기능 결과를 다음 대화에 남김 |
-| `get_reply(user_text)` | 대화 기록 없이 한 번만 질문 |
-| `today()` | 프롬프트에 넣을 오늘 날짜 문자열 |
-| `ReachyReply`, `Emotion`, `Skill` | 대화 응답 형식, 감정 목록, 기능 목록 |
-
-- `images`는 JPEG 바이트 목록(`list[bytes]`)만 받습니다.
-- 모든 요청에는 30초 제한 시간이 걸려 있습니다(`TIMEOUT_MS`).
+- 쓸 수 있는 것: `generate_text`, `search_web`, `ReachyChat`, `get_reply`
+  <!-- TODO: llm/ 기반 PR 머지 후 공개 API 목록 갱신 (generate_json, 이미지 입력, today 등) -->
 
 **이유:** API 키, 모델 기본값, 오류 처리를 한 곳에서 관리하기 위해서입니다. 각자 클라이언트를 만들면 설정이 흩어지고, `llm/`을 고칠 때 다른 기능이 조용히 깨집니다.
 
@@ -37,8 +25,6 @@ PR 리뷰도 이 기준으로 진행합니다.
 - 별도 라우터 호출을 만들지 않습니다.
 - 새 기능을 추가하려면 `skill` 값과 판단 기준을 추가하는 PR을 요청합니다(규칙 2).
 - 기능의 실제 처리는 각 모듈(`news/`, `diary/` 등)에서 합니다.
-- `voice_chat.py`는 `reply.skill`이 `chat`이 아니면 `reply.answer`("잠깐 볼게" 등)를 먼저 말하고, `reply.skill_query`를 해당 모듈에 넘겨 실행합니다.
-- 기능 결과는 `chat.remember(결과)`로 남겨서 "두 번째 거 더 알려줘" 같은 후속 질문이 되게 합니다.
 
 **이유:** 대화 응답 한 번으로 대답, 감정, 기능 분기를 같이 받으면 발화당 Gemini 호출이 1번으로 유지되고, 기능끼리 대화 흐름을 두고 충돌하지 않습니다.
 
