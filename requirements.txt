@@ -5,7 +5,7 @@ faster-whisper==1.2.1
 av==16.1.0  # av 19는 faster-whisper 1.2.1과 호환 안 됨 (metadata_errors 오류)
 sounddevice==0.5.6
 edge-tts==7.3.1
-opencv-python
-feedparser
-beautifulsoup4
-requests
+opencv-python==4.12.0.88
+feedparser==6.0.12
+beautifulsoup4==4.14.2
+requests==2.32.5
