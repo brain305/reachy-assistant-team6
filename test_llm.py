@@ -1,7 +1,7 @@
 # LLM 모듈 테스트. STT 대신 키보드로 입력하고, 대답과 감정을 JSON으로 출력한다.
 
 # python test_llm.py            # 대화 모드 (빈 줄 또는 Ctrl+C로 종료)
-# python test_llm.py --skill    # skill 판단 확인. 프롬프트를 고친 뒤 돌려 보기 (Gemini 호출 약 8번)
+# python test_llm.py --skill    # skill 판단 확인. 프롬프트를 고친 뒤 돌려 보기 (Gemini 호출 약 6번)
 #
 
 import sys
