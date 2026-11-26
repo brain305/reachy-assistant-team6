@@ -35,15 +35,19 @@ def _camera_device_bytes() -> bytes:
             )
         raise RuntimeError(f"카메라 장치 {index}를 열 수 없습니다.")
     try:
-        # 카메라를 켠 직후에는 프레임이 실패하거나 검게 나올 수 있어(특히 macOS) 잠시 재시도한다.
+        # 카메라를 켠 직후에는 프레임이 실패하거나 검게 나올 수 있다(맥북 FaceTime 카메라는 첫 프레임까지 약 2.2초).
+        # 최대 대기 시간이므로 프레임이 들어오면 바로 진행한다. .env의 REACHY_CAMERA_WARMUP(초)로 조절.
         ok, frame = False, None
-        for _ in range(20):
+        deadline = time.time() + float(os.getenv("REACHY_CAMERA_WARMUP", "5"))
+        attempts = 0
+        while time.time() < deadline:
+            attempts += 1
             ok, frame = camera.read()
             if ok and frame is not None and frame.mean() > 5:
                 break
             time.sleep(0.1)
         if not ok or frame is None:
-            raise RuntimeError("카메라에서 프레임을 읽지 못했습니다.")
+            raise RuntimeError(f"카메라에서 프레임을 읽지 못했습니다 ({attempts}회 시도).")
         ok, image = cv2.imencode(".jpg", frame)
         if not ok:
             raise RuntimeError("촬영 이미지를 JPEG로 변환하지 못했습니다.")
