@@ -13,6 +13,7 @@ audio = tts.synthesize("안녕")      # 재생하지 않고 오디오만 (float3
 import asyncio
 import io
 import os
+import re
 
 import av
 import edge_tts
@@ -26,7 +27,20 @@ DEFAULT_VOICE = os.getenv("TTS_VOICE", "ko-KR-SunHiNeural")
 DEFAULT_RATE = os.getenv("TTS_RATE", "+0%")
 SAMPLE_RATE = 24000  # edge-tts 기본 출력(24kHz mp3)
 
-__all__ = ["TextToSpeech", "SAMPLE_RATE"]
+__all__ = ["TextToSpeech", "SAMPLE_RATE", "clean_for_speech"]
+
+
+def clean_for_speech(text: str) -> str:
+    """LLM 답변의 마크다운 기호(**강조**, # 제목, - 목록, `코드`, [링크](url))를 TTS가 읽지 않게 지운다."""
+    text = re.sub(r"\[([^\]]+)\]\((https?://[^)]+)\)", r"\1", text)      # [글자](링크) → 글자
+    text = re.sub(r"\*\*(.*?)\*\*|__(.*?)__", lambda m: m.group(1) or m.group(2) or "", text, flags=re.S)
+    text = re.sub(r"(?m)^\s{0,3}#{1,6}\s*", "", text)                     # # 제목
+    text = re.sub(r"(?m)^\s{0,3}>\s?", "", text)                          # > 인용
+    text = re.sub(r"(?m)^\s*[-*+•]\s+", "", text)                          # - 목록
+    text = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"\1", text)             # *기울임*
+    text = re.sub(r"`{1,3}([^`]*)`{1,3}", r"\1", text)                     # `코드`
+    text = re.sub(r"\*{2,}|_{2,}|#{2,}", "", text)                         # 짝이 안 맞고 남은 기호
+    return text.strip()
 
 
 def _decode_mp3(data: bytes, sample_rate: int) -> np.ndarray:
@@ -66,6 +80,9 @@ class TextToSpeech:
 
     def synthesize(self, text: str) -> np.ndarray:
         """텍스트 → 오디오 배열 (재생은 안 함). 나중에 Reachy 스피커로 보낼 때 사용."""
+        text = clean_for_speech(text)  # 모든 기능의 답변이 여기를 거치므로 마크다운을 한 곳에서 제거
+        if not text:
+            return np.zeros(0, dtype=np.float32)
         mp3 = asyncio.run(self._fetch_mp3(text))
         return _decode_mp3(mp3, self.sample_rate)
 
