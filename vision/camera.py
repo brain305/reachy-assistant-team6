@@ -20,6 +20,9 @@ def _camera_device_bytes() -> bytes:
     index = int(os.getenv("REACHY_CAMERA_INDEX", "0"))
     if platform.system() == "Windows":
         camera = cv2.VideoCapture(index, cv2.CAP_DSHOW)
+    elif platform.system() == "Darwin":
+        # macOS에는 V4L2가 없으므로 AVFoundation을 사용한다.
+        camera = cv2.VideoCapture(index, cv2.CAP_AVFOUNDATION)
     else:
         camera = cv2.VideoCapture(index, cv2.CAP_V4L2)
     if not camera.isOpened():
