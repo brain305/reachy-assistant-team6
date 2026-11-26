@@ -9,6 +9,7 @@ WSL에는 웹캠 장치 전달이 보장되지 않으므로 file/bridge 모드�
 
 import os
 import platform
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -27,10 +28,21 @@ def _camera_device_bytes() -> bytes:
         camera = cv2.VideoCapture(index, cv2.CAP_V4L2)
     if not camera.isOpened():
         camera.release()
+        if platform.system() == "Darwin":
+            raise RuntimeError(
+                f"카메라 장치 {index}를 열 수 없습니다. macOS 시스템 설정 → 개인정보 보호 및 보안 → 카메라에서 "
+                "이 프로그램을 실행한 터미널(또는 VS Code)을 허용한 뒤 그 앱을 완전히 종료하고 다시 실행하세요."
+            )
         raise RuntimeError(f"카메라 장치 {index}를 열 수 없습니다.")
     try:
-        ok, frame = camera.read()
-        if not ok:
+        # 카메라를 켠 직후에는 프레임이 실패하거나 검게 나올 수 있어(특히 macOS) 잠시 재시도한다.
+        ok, frame = False, None
+        for _ in range(20):
+            ok, frame = camera.read()
+            if ok and frame is not None and frame.mean() > 5:
+                break
+            time.sleep(0.1)
+        if not ok or frame is None:
             raise RuntimeError("카메라에서 프레임을 읽지 못했습니다.")
         ok, image = cv2.imencode(".jpg", frame)
         if not ok:
