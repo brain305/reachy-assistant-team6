@@ -145,7 +145,8 @@ mjpython -m reachy_mini.daemon.app.main --sim
 ```bash
 cd ~/reachy
 source .venv/bin/activate
-reachy-mini-daemon --sim
+mjpython -m reachy_mini.daemon.app.main --sim   # macOS
+# reachy-mini-daemon --sim                      # Linux / WSL
 ```
 
 MuJoCo 창에 로봇이 보이면 성공입니다.
