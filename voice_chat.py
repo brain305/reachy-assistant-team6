@@ -8,7 +8,7 @@ import time
 from contextlib import nullcontext
 
 from reachy_mini import ReachyMini
-from llm import ReachyChat
+from diary.conversation import DiaryConversation, spoken_text
 from motion import EmotionMotion
 from skills.router import SkillRouter
 from skills.runner import SkillRunner
@@ -29,7 +29,7 @@ def main():
     print("STT 모델 불러오는 중...")
     stt = SpeechToText()
     tts = TextToSpeech()
-    chat = ReachyChat()  # 대화 기록 유지 (프로그램을 껐다 켜면 초기화)
+    chat = DiaryConversation()  # 일반 대화 + 일기 기능 (대화 기록은 프로그램을 껐다 켜면 초기화)
     router = SkillRouter()
     runner = SkillRunner()
     mini = connect_reachy()
@@ -78,13 +78,17 @@ def main():
                 print(f"나: {text}")
                 print(f"  (STT {t1 - t0:.1f}s)")
 
-                try:
-                    choice = router.choose(text, has_news=runner.last_news is not None)
-                    t_router = time.time()
-                    print(f"[Skill Router] {choice.skill} (라우팅 {t_router - t1:.1f}s)")
-                except Exception as exc:
-                    print(f"[Router] 판단 실패 → 일반 대화: {type(exc).__name__}: {exc}")
-                    choice = None
+                choice = None
+                if chat.diary.active or chat.diary.pending_start:
+                    # 일기 작성 중인 발화는 카메라/뉴스 스킬로 새지 않도록 라우터를 건너뛴다.
+                    print("[Skill Router] 일기 진행 중 → chat")
+                else:
+                    try:
+                        choice = router.choose(text, has_news=runner.last_news is not None)
+                        t_router = time.time()
+                        print(f"[Skill Router] {choice.skill} (라우팅 {t_router - t1:.1f}s)")
+                    except Exception as exc:
+                        print(f"[Router] 판단 실패 → 일반 대화: {type(exc).__name__}: {exc}")
 
                 if choice and choice.skill != "chat":
                     try:
@@ -112,14 +116,15 @@ def main():
                 emotion_name = getattr(reply.emotion, "value", reply.emotion)
                 print(f"  감정={emotion_name} 세기={reply.intensity:.1f}")
                 print(f"  (STT {t1 - t0:.1f}s + 라우팅 {t_llm - t1:.1f}s + LLM {t_done - t_llm:.1f}s = 대답까지 {t_done - t0:.1f}s)")
-                say(reply.answer,
+                say(spoken_text(reply),
                     on_start=lambda: motion and motion.express(reply.emotion, reply.intensity))
                 if motion:
                     motion.wait()  # 모션이 끝난 뒤 다시 듣기
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             print("\n종료")
         finally:
             tts.stop()
+            chat.close()  # 저장하지 않은 일기 내용이 있으면 출력
 
 
 if __name__ == "__main__":
