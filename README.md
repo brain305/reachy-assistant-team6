@@ -145,7 +145,7 @@ mjpython -m reachy_mini.daemon.app.main --sim
 ```bash
 cd ~/reachy
 source .venv/bin/activate
-mjpython -m reachy_mini.daemon.app.main --sim   # macOS
+mjpython -m reachy_mini.daemon.app.main --sim --no-media   # macOS (--no-media: 데몬의 GStreamer 미디어를 끔, 마이크·스피커는 우리 STT/TTS가 사용)
 # reachy-mini-daemon --sim                      # Linux / WSL
 ```
 
