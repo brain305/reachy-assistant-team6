@@ -14,15 +14,6 @@ class Emotion(str, Enum):
     NEUTRAL = "neutral"
 
 
-class Skill(str, Enum):
-    """대화 대신 실행할 기능. voice_chat.py가 이 값을 보고 해당 모듈을 부른다."""
-
-    CHAT = "chat"
-    NEWS = "news"
-    VISION = "vision"
-    DIARY = "diary"
-
-
 class ReachyReply(BaseModel):
     """LLM이 돌려주는 JSON 응답 형식."""
 
@@ -34,12 +25,4 @@ class ReachyReply(BaseModel):
     search_query: str = Field(
         default="",
         description="오늘 날짜 기준의 외부 정보가 필요할 때만 검색어를 넣는다. 필요 없으면 빈 문자열.",
-    )
-    skill: Skill = Field(
-        default=Skill.CHAT,
-        description="대화 대신 실행할 기능. 일반 대화면 chat.",
-    )
-    skill_query: str = Field(
-        default="",
-        description="skill이 chat이 아닐 때 기능에 넘길 내용. chat이면 빈 문자열.",
     )
